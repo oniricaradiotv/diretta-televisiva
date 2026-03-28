@@ -2,9 +2,8 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>STARMEDIA DIRETTA TV</title>
+  <title>ONIRICA DIRETTA TV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     html, body {
       margin: 0;
@@ -26,6 +25,7 @@
       object-fit: contain;
       pointer-events: none;
     }
+    /* Pulsante audio grande e centrato */
     #muteBtn {
       position: absolute;
       top: 50%;
@@ -48,7 +48,9 @@
 <body>
 
 <div id="playerWrapper">
-  <video id="vid" autoplay muted playsinline></video>
+  <video id="vid" autoplay muted playsinline loop>
+    <source src="https://dl.dropboxusercontent.com/scl/fi/nihn4k8s29rcutqshsrop/PLAYOUT-ONIRICA.mp4?rlkey=24ebasunrgejo9htvt25z8dqa&st=nyrfm5bx&dl=0" type="video/mp4" />
+  </video>
   <button id="muteBtn">Attiva audio</button>
 </div>
 
@@ -57,22 +59,12 @@
   const muteBtn = document.getElementById('muteBtn');
   const playerWrapper = document.getElementById('playerWrapper');
 
-  const streamUrl = "https://euc11.playlist.ttvnw.net/v1/playlist/CswGkiGEfGK9LarnE3H_k7VWGRADp2NpnUekI83hOkHH-8kqYrnjyK49DHjQpzAAc4MvO0rC-Nb0A8XxicK4phjGErS804wOWNC4zNvCVo2d66Q0YcPLAglSP717R6GjtcWfiDbhvHWW0U1MD9e0N9kMKgifmdbqgxgOo62L07ZsCwvgrJZpBMop9od30fWXK1Z30rSTgMcv3x0cp3yrrCYQgySg94pJHNAZPJpHwhu0RrXfHNMwlABmLvBBt_1KP9gSgZwhLCvHS0Bp_GVOXIsGpuxAmvo5sxfTJAdrlnRDxwGfUAC_ABZQgHyJPr0PeCrYbbZhaGZLFpHdlWJKGXz9TvXnM_ePcrVUo2PSabcz2GEeJXer_maHGREijHygRBzTf88-amXDuhYT7Xb0pUkjNMT2ObHDekGxcRQUBNmY7Ky9y7SVXYENcMLGj1iWOdKFcJZbzOvrP8sOEX1-0n7jjv5A4vWs7hopBvxUdFxtRTqkqT8A5tgtDRAopLpbQ1MR7jiMNjvacv_J-h89G1GJDUvpvNdAttABQbgEf4XZtv6T-bQitLvWB6_CKZ5z9YghCCnwxsjm12c0kfXRalO8sIF0dYkjTM57AurSoDp1OdiUR6Td7TDhTjaHm9vv5pCTc88_dkBWZzJfwgvXeflDrc3RAzAoagHc9qN3oHxseUjwrQHgWgaXC6UqdLxLyl0VH-Yhnx4zHFDInctu6u03Q9JxvPfXd-3iPE9RYj3bgP144v6cu9bf4lK875c3Exxlr1Tnv7mQ3GbEj1wWAVGWh2rrHfOCW38VZJjlUmGmpsBoaQwykvThNfYjuKyYq74SyKO1cOlYDgaGqpx0YspOMVMzLBv2wnxSugsMOQWj1QHvoD8pZE00nJK1wZ6AvzYjLD6NFAmrdWi1YxTvE_MYox8raEBc4cH_Qjoy9V2eMjG4TH6UA9Cih1JIxeckFUqbzMhuwtiPRTHjqDTJsIl9homtwKRUPP7-V7SUmg7VQuW6CGulp9dUD19otY3W-G3eYrIv8OiTa_ImX_cRvlZOgkyTHJRko3qx8QiKHqzFKyNRsIG35RzCrlaX4AqPZUWt_RgVUJckUb4czS3h7zjGANppa2-vmdk9WmvwEBoMIM-wJ4mE25LCQbCUIAEqCWV1LXdlc3QtMjDhDg.m3u8";
+  // Inizia da punto casuale
+  video.addEventListener('loadedmetadata', () => {
+    video.currentTime = Math.random() * video.duration;
+  });
 
-  // Supporto HLS
-  if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    // Safari
-    video.src = streamUrl;
-  } else if (Hls.isSupported()) {
-    // Altri browser
-    const hls = new Hls();
-    hls.loadSource(streamUrl);
-    hls.attachMedia(video);
-  } else {
-    alert("Il tuo browser non supporta lo streaming HLS");
-  }
-
-  // Mostra/nasconde pulsante audio
+  // Funzione per mostrare/nascondere i controlli
   let hideTimer;
   function showControls() {
     muteBtn.style.display = 'block';
@@ -82,15 +74,17 @@
     }, 3000);
   }
 
+  // Listener click sul wrapper (funziona sia in fullscreen che normale)
   playerWrapper.addEventListener('click', showControls);
 
+  // Pulsante mute
   muteBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     video.muted = !video.muted;
     muteBtn.textContent = video.muted ? 'Attiva audio' : 'Disattiva audio';
   });
 
-  // Blocca tasto destro e shortcut
+  // Blocca tasto destro e shortcut per saltare
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('keydown', e => {
     const block = [" ", "ArrowRight", "ArrowLeft", "F12"];
@@ -99,21 +93,21 @@
     }
   });
 
-  // Disabilita doppio tap su mobile
+  // Disabilita il double-tap to seek su mobile
   let lastTap = 0;
   video.addEventListener('touchend', (e) => {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
     if (tapLength < 300 && tapLength > 0) {
-      e.preventDefault();
+      e.preventDefault(); // Previene il doppio tap
     }
     lastTap = currentTime;
   });
 
+  // Disabilita zoom e gesture multitouch (Safari)
   document.addEventListener('gesturestart', e => e.preventDefault());
   document.addEventListener('gesturechange', e => e.preventDefault());
   document.addEventListener('gestureend', e => e.preventDefault());
 </script>
 
 </body>
-</html>
